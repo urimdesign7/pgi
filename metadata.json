@@ -1,0 +1,6 @@
+{
+  "name": "PGI 선교회",
+  "description": "복음 증거와 예배로 분향단의 기도를 채워 나가는 사명 공동체 PGI 선교회 공식 홈페이지입니다.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

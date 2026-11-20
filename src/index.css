@@ -1,0 +1,45 @@
+@import "tailwindcss";
+
+@theme {
+  --font-serif-kr: "Noto Serif KR", "Cormorant Garamond", Georgia, serif;
+  --font-display-en: "Cormorant Garamond", "Noto Serif KR", Georgia, serif;
+  --font-sans-kr: "Noto Sans KR", "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono-tabular: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    font-family: var(--font-sans-kr);
+    background-color: #FBF9F5;
+    color: #1C1917;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+.font-editorial {
+  font-family: var(--font-serif-kr);
+}
+
+.font-latin-serif {
+  font-family: var(--font-display-en);
+}
+
+.font-tabular {
+  font-family: var(--font-mono-tabular);
+  font-variant-numeric: tabular-nums;
+}
+
+.text-balance {
+  text-wrap: balance;
+}
