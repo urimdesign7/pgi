@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { BookOpen } from 'lucide-react';
+import { resolveAssetUrl } from '../data/pgiData';
 
 interface ResilientImageProps {
   src: string;
@@ -43,7 +44,7 @@ export function ResilientImage({
   return (
     <div className={`relative overflow-hidden bg-[#EBE6DF] ${aspectClassName}`}>
       <img
-        src={src}
+        src={resolveAssetUrl(src)}
         alt={alt}
         referrerPolicy="no-referrer"
         onError={() => setHasError(true)}

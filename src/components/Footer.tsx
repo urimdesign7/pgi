@@ -1,5 +1,5 @@
 import { ArrowUpRight } from 'lucide-react';
-import { MISSION_META, YOUTUBE_LIVE_URL } from '../data/pgiData';
+import { MISSION_META, YOUTUBE_CHANNEL_URL } from '../data/pgiData';
 
 interface FooterProps {
   onOpenAdminPage: () => void;
@@ -71,7 +71,7 @@ export function Footer({ onOpenAdminPage }: FooterProps) {
               </li>
               <li>
                 <a
-                  href={YOUTUBE_LIVE_URL}
+                  href={YOUTUBE_CHANNEL_URL}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-1 text-[#E7D3AC] hover:underline"

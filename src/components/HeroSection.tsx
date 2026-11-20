@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { ArrowRight, ChevronLeft, ChevronRight, Radio } from 'lucide-react';
-import { HERO_SLIDES } from '../data/pgiData';
+import { HERO_SLIDES, resolveAssetUrl } from '../data/pgiData';
 
 interface HeroSectionProps {
   onOpenLiveModal: () => void;
@@ -62,7 +62,7 @@ export function HeroSection({ onOpenLiveModal }: HeroSectionProps) {
                 />
               ) : (
                 <img
-                  src={slide.image}
+                  src={resolveAssetUrl(slide.image)}
                   alt={slide.alt}
                   referrerPolicy="no-referrer"
                   onError={() =>

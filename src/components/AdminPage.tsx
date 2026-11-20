@@ -89,6 +89,7 @@ import {
   GALLERY_BASELINE_ITEMS,
   getNoticeImages,
   normalizeCommunityCategory,
+  resolveAssetUrl,
   type CommunityCategory,
   type NoticeCategory,
 } from '../data/pgiData';
@@ -1807,7 +1808,7 @@ export function AdminPage({ initialTab = 'notices', onChangeTab, onBackToSite }:
                                 >
                                   <div className="relative aspect-[4/3] bg-[#EBE6DF] overflow-hidden">
                                     <img
-                                      src={src}
+                                      src={resolveAssetUrl(src)}
                                       alt={`슬라이드 ${idx + 1}`}
                                       referrerPolicy="no-referrer"
                                       className="w-full h-full object-cover"
@@ -1908,7 +1909,7 @@ export function AdminPage({ initialTab = 'notices', onChangeTab, onBackToSite }:
                           <div className="p-2.5 bg-[#FBF9F5] border border-stone-200 rounded-md space-y-2">
                             <div className="relative bg-[#F3EFE6] rounded overflow-hidden flex items-center justify-center">
                               <img
-                                src={noticeForm.imageUrl}
+                                src={resolveAssetUrl(noticeForm.imageUrl)}
                                 alt="첨부 이미지 미리보기"
                                 referrerPolicy="no-referrer"
                                 className="w-full max-h-48 object-contain"

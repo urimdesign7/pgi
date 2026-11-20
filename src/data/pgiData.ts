@@ -63,14 +63,22 @@ export interface NoticeItem {
   authorName?: string;
 }
 
+export function resolveAssetUrl(url: string): string {
+  const trimmed = url.trim();
+  if (trimmed.startsWith('/src/assets/')) {
+    return `.${trimmed}`;
+  }
+  return trimmed;
+}
+
 export function getNoticeImages(item: Pick<NoticeItem, 'imageUrl' | 'imageUrls'>): string[] {
   const fromArray = Array.isArray(item.imageUrls)
-    ? item.imageUrls.map((u) => u.trim()).filter(Boolean)
+    ? item.imageUrls.map((u) => resolveAssetUrl(u)).filter(Boolean)
     : [];
   if (fromArray.length > 0) {
     return Array.from(new Set(fromArray)).slice(0, 10);
   }
-  const single = item.imageUrl?.trim();
+  const single = item.imageUrl ? resolveAssetUrl(item.imageUrl) : '';
   return single ? [single] : [];
 }
 

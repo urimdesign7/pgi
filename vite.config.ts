@@ -9,15 +9,15 @@ export default defineConfig(({mode}) => {
   const mapsKeyFallback =
     env.GOOGLE_MAPS_API_KEY || process.env.GOOGLE_MAPS_API_KEY || '';
   return {
+    base: './',
     define: {
       __GOOGLE_MAPS_KEY_FALLBACK__: JSON.stringify(mapsKeyFallback),
     },
     plugins: [
       react(),
       tailwindcss(),
-      // Copies src/assets into dist/ so root-relative URLs like
-      // "/src/assets/images/..." (e.g. generate_image output) still resolve
-      // in production builds. Do not remove.
+      // Copies src/assets into dist/ so asset URLs still resolve
+      // in production builds (including GitHub Pages subpaths). Do not remove.
       {
         name: 'copy-unbundled-src-assets',
         apply: 'build',
@@ -28,8 +28,11 @@ export default defineConfig(({mode}) => {
           const distDir = path.resolve(__dirname, 'dist');
           const srcAssets = path.resolve(__dirname, 'src/assets');
           const distAssets = path.resolve(distDir, 'src/assets');
-          if (fs.existsSync(distDir) && fs.existsSync(srcAssets)) {
-            fs.cpSync(srcAssets, distAssets, {recursive: true, force: true});
+          if (fs.existsSync(distDir)) {
+            fs.writeFileSync(path.resolve(distDir, '.nojekyll'), '');
+            if (fs.existsSync(srcAssets)) {
+              fs.cpSync(srcAssets, distAssets, {recursive: true, force: true});
+            }
           }
         },
       },
