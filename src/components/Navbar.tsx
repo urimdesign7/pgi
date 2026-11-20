@@ -69,7 +69,7 @@ export function Navbar({ onOpenAdminPage }: NavbarProps) {
             rel="noopener noreferrer"
             aria-label="PGI 선교회 유튜브 채널 바로가기"
             title="유튜브 PGI 선교회 채널"
-            className="inline-flex items-center justify-center w-10 h-10 hover:bg-[#EBE6DF]/70 rounded-md transition-all duration-150 hover:opacity-90 shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#9A6B22]"
+            className="inline-flex items-center justify-center w-10 h-10 hover:bg-[#EBE6DF]/70 rounded-full transition-all duration-300 hover:opacity-90 shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#9A6B22]"
           >
             <YouTubeIcon className="w-6 h-6" />
           </a>
@@ -79,7 +79,7 @@ export function Navbar({ onOpenAdminPage }: NavbarProps) {
             onClick={onOpenAdminPage}
             aria-label="관리자 페이지"
             title="관리자 페이지"
-            className="inline-flex items-center justify-center w-10 h-10 text-[#1C1917] bg-[#EBE6DF]/80 hover:bg-[#E2DCD2] rounded-md transition-colors duration-150 shrink-0 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#9A6B22]"
+            className="inline-flex items-center justify-center w-10 h-10 text-[#1C1917] bg-[#EBE6DF]/80 hover:bg-[#E2DCD2] rounded-full transition-all duration-300 shrink-0 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#9A6B22]"
           >
             <Settings className="w-[18px] h-[18px]" />
           </button>
@@ -89,7 +89,7 @@ export function Navbar({ onOpenAdminPage }: NavbarProps) {
             onClick={() => setMobileOpen((prev) => !prev)}
             aria-expanded={mobileOpen}
             aria-label={mobileOpen ? '메뉴 닫기' : '메뉴 열기'}
-            className="md:hidden inline-flex items-center justify-center w-11 h-11 text-[#1C1917] hover:bg-[#EBE6DF] rounded-md transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#9A6B22]"
+            className="md:hidden inline-flex items-center justify-center w-11 h-11 text-[#1C1917] hover:bg-[#EBE6DF] rounded-full transition-all duration-300 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#9A6B22]"
           >
             {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
@@ -115,7 +115,7 @@ export function Navbar({ onOpenAdminPage }: NavbarProps) {
               target="_blank"
               rel="noopener noreferrer"
               onClick={() => setMobileOpen(false)}
-              className="inline-flex items-center justify-center gap-2 py-2.5 px-3 text-xs font-medium text-[#1C1917] bg-[#F3EFE6] hover:bg-[#EBE6DF] border border-stone-200 rounded-md transition-colors whitespace-nowrap"
+              className="inline-flex items-center justify-center gap-2 py-2.5 px-4 text-xs font-medium text-[#1C1917] bg-[#F3EFE6] hover:bg-[#EBE6DF] border border-stone-300 rounded-full transition-all duration-300 whitespace-nowrap"
             >
               <YouTubeIcon className="w-4 h-4" />
               <span>유튜브 채널</span>
@@ -126,7 +126,7 @@ export function Navbar({ onOpenAdminPage }: NavbarProps) {
                 setMobileOpen(false);
                 onOpenAdminPage();
               }}
-              className="inline-flex items-center justify-center gap-2 py-2.5 px-3 text-xs font-medium text-[#FBF9F5] bg-[#1C1917] hover:bg-[#342F2B] rounded-md transition-colors whitespace-nowrap cursor-pointer"
+              className="inline-flex items-center justify-center gap-2 py-2.5 px-4 text-xs font-medium text-[#FBF9F5] bg-[#1C1917] hover:bg-[#342F2B] rounded-full transition-all duration-300 whitespace-nowrap cursor-pointer"
             >
               <Settings className="w-4 h-4" />
               <span>관리자 페이지</span>

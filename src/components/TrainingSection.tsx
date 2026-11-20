@@ -15,12 +15,12 @@ export function TrainingSection({ onSelectProgramForInquiry }: TrainingSectionPr
     <section id="training" className="py-16 sm:py-24 border-t border-stone-200 bg-[#FBF9F5]">
       <div className="max-w-[1200px] mx-auto px-4 sm:px-8">
         {/* Header + Program Switcher */}
-        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 pb-8 border-b border-stone-200">
-          <div>
+        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-5 pb-8 border-b border-stone-200">
+          <div className="min-w-0">
             <p className="text-xs font-medium text-[#9A6B22] tracking-wide mb-2">
               03. 훈련 프로그램
             </p>
-            <h2 className="font-editorial text-2xl sm:text-4xl font-semibold text-[#1C1917] tracking-tight text-balance">
+            <h2 className="font-editorial text-2xl sm:text-3xl xl:text-[34px] font-semibold text-[#1C1917] tracking-tight text-balance">
               말씀과 기도로 세워지는 제자 양육 과정
             </h2>
           </div>
@@ -28,7 +28,7 @@ export function TrainingSection({ onSelectProgramForInquiry }: TrainingSectionPr
           <div
             role="tablist"
             aria-label="훈련 프로그램 선택"
-            className="inline-flex flex-wrap items-center gap-1 p-1 bg-[#EBE6DF] rounded-lg self-start lg:self-auto"
+            className="inline-flex flex-nowrap items-center gap-1 p-1 bg-[#EBE6DF] rounded-full self-start lg:self-auto shrink-0 max-w-full overflow-x-auto"
           >
             {TRAINING_PROGRAMS.map((prog) => {
               const isActive = prog.id === selectedId;
@@ -39,7 +39,7 @@ export function TrainingSection({ onSelectProgramForInquiry }: TrainingSectionPr
                   role="tab"
                   aria-selected={isActive}
                   onClick={() => setSelectedId(prog.id)}
-                  className={`px-3.5 py-2 text-xs sm:text-sm font-medium rounded-md transition-colors cursor-pointer whitespace-nowrap shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#9A6B22] ${
+                  className={`px-3 sm:px-3.5 py-2 text-xs sm:text-[13px] font-medium rounded-full transition-all duration-300 cursor-pointer whitespace-nowrap shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#9A6B22] ${
                     isActive
                       ? 'bg-[#FBF9F5] text-[#1C1917] shadow-sm'
                       : 'text-[#57534E] hover:text-[#1C1917]'
@@ -139,7 +139,7 @@ export function TrainingSection({ onSelectProgramForInquiry }: TrainingSectionPr
               <button
                 type="button"
                 onClick={() => onSelectProgramForInquiry(current.title)}
-                className="inline-flex items-center justify-center gap-2 px-5 py-2.5 text-sm font-medium text-[#FBF9F5] bg-[#1C1917] hover:bg-[#342F2B] rounded-md transition-colors whitespace-nowrap shrink-0 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#9A6B22]"
+                className="inline-flex items-center justify-center gap-2 px-7 py-3 text-sm font-medium text-[#FBF9F5] bg-[#1C1917] hover:bg-[#342F2B] rounded-full transition-all duration-300 ease-out whitespace-nowrap shrink-0 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#9A6B22]"
               >
                 <span>이 과정 신청 · 문의하기</span>
                 <ArrowRight className="w-4 h-4" />

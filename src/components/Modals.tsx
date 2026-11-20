@@ -51,7 +51,7 @@ export function LiveWorshipModal({ isOpen, onClose }: LiveWorshipModalProps) {
             type="button"
             onClick={onClose}
             aria-label="닫기"
-            className="w-9 h-9 inline-flex items-center justify-center rounded-md text-[#57534E] hover:bg-[#EBE6DF] hover:text-[#1C1917] transition-colors cursor-pointer"
+            className="w-9 h-9 inline-flex items-center justify-center rounded-full text-[#57534E] hover:bg-[#EBE6DF] hover:text-[#1C1917] transition-all duration-300 cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
@@ -85,7 +85,7 @@ export function LiveWorshipModal({ isOpen, onClose }: LiveWorshipModalProps) {
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2.5 text-sm font-medium text-[#57534E] hover:text-[#1C1917] rounded-md transition-colors cursor-pointer"
+            className="px-5 py-2.5 text-sm font-medium text-[#57534E] border border-stone-300 hover:border-[#1C1917] hover:text-[#1C1917] rounded-full transition-all duration-300 cursor-pointer"
           >
             닫기
           </button>
@@ -93,7 +93,7 @@ export function LiveWorshipModal({ isOpen, onClose }: LiveWorshipModalProps) {
             href={YOUTUBE_LIVE_URL}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center justify-center gap-2 px-5 py-2.5 text-sm font-medium text-[#FBF9F5] bg-[#1C1917] hover:bg-[#342F2B] rounded-md transition-colors whitespace-nowrap"
+            className="inline-flex items-center justify-center gap-2 px-6 py-2.5 text-sm font-medium text-[#FBF9F5] bg-[#1C1917] hover:bg-[#342F2B] rounded-full transition-all duration-300 ease-out whitespace-nowrap"
           >
             <Play className="w-4 h-4" />
             <span>유튜브 생중계 채널 열기</span>
@@ -175,7 +175,7 @@ export function NoticeDetailModal({
             type="button"
             onClick={onClose}
             aria-label="닫기"
-            className="w-9 h-9 inline-flex items-center justify-center rounded-md text-[#57534E] hover:bg-[#EBE6DF] hover:text-[#1C1917] transition-colors cursor-pointer shrink-0"
+            className="w-9 h-9 inline-flex items-center justify-center rounded-full text-[#57534E] hover:bg-[#EBE6DF] hover:text-[#1C1917] transition-all duration-300 cursor-pointer shrink-0"
           >
             <X className="w-5 h-5" />
           </button>
@@ -210,7 +210,7 @@ export function NoticeDetailModal({
                     <button
                       type="button"
                       onClick={() => setExpandedImage((v) => !v)}
-                      className="inline-flex items-center gap-1 font-medium text-[#9A6B22] hover:underline cursor-pointer"
+                      className="inline-flex items-center gap-1 px-3 py-1 font-medium text-[#9A6B22] border border-[#9A6B22]/35 hover:border-[#9A6B22] rounded-full transition-all duration-300 cursor-pointer"
                     >
                       {expandedImage ? (
                         <>
@@ -250,7 +250,7 @@ export function NoticeDetailModal({
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 text-xs font-medium text-[#FBF9F5] bg-[#1C1917] hover:bg-[#342F2B] rounded-md transition-colors cursor-pointer"
+            className="px-6 py-2 text-xs font-medium text-[#FBF9F5] bg-[#1C1917] hover:bg-[#342F2B] rounded-full transition-all duration-300 cursor-pointer"
           >
             확인
           </button>

@@ -122,7 +122,7 @@ export function GalleryPresentation({
               type="button"
               onClick={() => setIsPlaying((v) => !v)}
               aria-label={isPlaying ? '자동 슬라이드 일시정지' : '자동 슬라이드 재생'}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-stone-100 bg-stone-800 hover:bg-stone-700 rounded transition-colors cursor-pointer whitespace-nowrap"
+              className="inline-flex items-center gap-1.5 px-4 py-1.5 text-xs font-medium text-stone-100 bg-stone-800 hover:bg-stone-700 rounded-full transition-all duration-300 cursor-pointer whitespace-nowrap"
             >
               {isPlaying ? (
                 <>
@@ -143,7 +143,7 @@ export function GalleryPresentation({
               type="button"
               onClick={() => onOpenFullscreen(currentIndex)}
               aria-label="전체 화면 프레젠테이션 열기"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-[#1C1917] bg-[#F3EFE6] hover:bg-[#FBF9F5] rounded transition-colors cursor-pointer whitespace-nowrap"
+              className="inline-flex items-center gap-1.5 px-4 py-1.5 text-xs font-medium text-[#1C1917] bg-[#F3EFE6] hover:bg-[#FBF9F5] rounded-full transition-all duration-300 cursor-pointer whitespace-nowrap"
             >
               <Maximize2 className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">크게 보기</span>

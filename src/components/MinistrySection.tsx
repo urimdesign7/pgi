@@ -70,12 +70,12 @@ export function MinistrySection({ onOpenLiveModal }: MinistrySectionProps) {
                 </dl>
               </div>
 
-              <div className="flex flex-wrap items-center gap-4 pt-2">
+              <div className="flex flex-wrap items-center gap-3 pt-2">
                 <a
                   href={YOUTUBE_LIVE_URL}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-4 py-2.5 text-xs sm:text-sm font-medium text-[#FBF9F5] bg-[#1C1917] hover:bg-[#342F2B] rounded-md transition-colors whitespace-nowrap shrink-0"
+                  className="inline-flex items-center gap-2 px-6 py-2.5 text-xs sm:text-sm font-medium text-[#FBF9F5] bg-[#1C1917] hover:bg-[#342F2B] rounded-full transition-all duration-300 ease-out whitespace-nowrap shrink-0"
                 >
                   <Play className="w-3.5 h-3.5" />
                   <span>유튜브 PGI 선교회 생중계</span>
@@ -85,7 +85,7 @@ export function MinistrySection({ onOpenLiveModal }: MinistrySectionProps) {
                 <button
                   type="button"
                   onClick={onOpenLiveModal}
-                  className="text-xs sm:text-sm font-medium text-[#9A6B22] hover:text-[#785116] underline underline-offset-4 cursor-pointer whitespace-nowrap"
+                  className="inline-flex items-center justify-center px-5 py-2.5 text-xs sm:text-sm font-medium text-[#1C1917] border border-stone-300 hover:border-[#1C1917] rounded-full transition-all duration-300 cursor-pointer whitespace-nowrap"
                 >
                   온라인 참여 안내 보기
                 </button>
@@ -214,7 +214,7 @@ export function MinistrySection({ onOpenLiveModal }: MinistrySectionProps) {
                 </p>
                 <a
                   href="#contact"
-                  className="text-xs font-medium text-[#9A6B22] hover:underline underline-offset-4"
+                  className="inline-flex items-center px-4 py-1.5 text-xs font-medium text-[#9A6B22] border border-[#9A6B22]/40 hover:border-[#9A6B22] rounded-full transition-all duration-300 whitespace-nowrap"
                 >
                   참여 문의하기 →
                 </a>
@@ -242,7 +242,7 @@ export function MinistrySection({ onOpenLiveModal }: MinistrySectionProps) {
                     <span>모임 안내 및 등록</span>
                     <a
                       href="#contact"
-                      className="font-medium text-[#1C1917] hover:text-[#9A6B22] transition-colors"
+                      className="inline-flex items-center px-3.5 py-1 text-xs font-medium text-[#1C1917] border border-stone-300 hover:border-[#1C1917] rounded-full transition-all duration-300 whitespace-nowrap"
                     >
                       사무국 문의
                     </a>

@@ -138,7 +138,7 @@ export function TorahSection() {
 
           {/* Right 7 Cols: Interactive 5-Book Pentateuch Explorer */}
           <div className="lg:col-span-7 bg-[#FBF9F5] border border-stone-200 rounded-xl p-6 sm:p-8">
-            <div className="flex flex-wrap items-center gap-1.5 pb-5 border-b border-stone-200">
+            <div className="flex flex-wrap items-center gap-2 pb-5 border-b border-stone-200">
               {TORAH_BOOKS.map((book) => {
                 const isActive = book.id === selectedBookId;
                 return (
@@ -146,10 +146,10 @@ export function TorahSection() {
                     key={book.id}
                     type="button"
                     onClick={() => setSelectedBookId(book.id)}
-                    className={`px-3.5 py-2 text-xs sm:text-sm font-medium rounded-md transition-colors cursor-pointer whitespace-nowrap shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#9A6B22] ${
+                    className={`px-4 py-2 text-xs sm:text-sm font-medium rounded-full transition-all duration-300 cursor-pointer whitespace-nowrap shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#9A6B22] ${
                       isActive
                         ? 'bg-[#1C1917] text-[#FBF9F5]'
-                        : 'bg-[#F3EFE6] text-[#57534E] hover:text-[#1C1917]'
+                        : 'bg-[#F3EFE6] text-[#57534E] border border-stone-200 hover:border-stone-400 hover:text-[#1C1917]'
                     }`}
                   >
                     {book.koreanName} ({book.portionCount})

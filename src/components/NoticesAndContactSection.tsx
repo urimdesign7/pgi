@@ -152,7 +152,7 @@ export function NoticesAndContactSection({
             <div
               role="tablist"
               aria-label="커뮤니티 카테고리 선택"
-              className="inline-flex items-center gap-1 p-1 bg-[#EBE6DF] rounded-lg self-start lg:self-auto"
+              className="inline-flex items-center gap-1 p-1 bg-[#EBE6DF] rounded-full self-start lg:self-auto"
             >
               {COMMUNITY_CATEGORIES.map((cat) => {
                 const isActive = categoryFilter === cat;
@@ -163,7 +163,7 @@ export function NoticesAndContactSection({
                     role="tab"
                     aria-selected={isActive}
                     onClick={() => setCategoryFilter(cat)}
-                    className={`px-5 py-2 text-xs sm:text-sm font-medium rounded-md transition-colors cursor-pointer whitespace-nowrap shrink-0 ${
+                    className={`px-6 py-2 text-xs sm:text-sm font-medium rounded-full transition-all duration-300 cursor-pointer whitespace-nowrap shrink-0 ${
                       isActive
                         ? 'bg-[#FBF9F5] text-[#1C1917] shadow-sm'
                         : 'text-[#57534E] hover:text-[#1C1917]'
@@ -283,7 +283,7 @@ export function NoticesAndContactSection({
                       <button
                         type="button"
                         onClick={() => onSelectNotice(activePresentation, 0)}
-                        className="inline-flex items-center justify-center gap-1.5 px-4 py-2 text-xs sm:text-sm font-medium text-[#FBF9F5] bg-[#1C1917] hover:bg-[#342F2B] rounded-md transition-colors whitespace-nowrap shrink-0 cursor-pointer"
+                        className="inline-flex items-center justify-center gap-1.5 px-6 py-2.5 text-xs sm:text-sm font-medium text-[#FBF9F5] bg-[#1C1917] hover:bg-[#342F2B] rounded-full transition-all duration-300 ease-out whitespace-nowrap shrink-0 cursor-pointer"
                       >
                         <Maximize2 className="w-3.5 h-3.5" />
                         <span>전체 화면 프레젠테이션</span>
@@ -372,7 +372,7 @@ export function NoticesAndContactSection({
                               <button
                                 type="button"
                                 onClick={() => onSelectNotice(item, 0)}
-                                className="inline-flex items-center gap-1 font-medium text-[#9A6B22] hover:underline cursor-pointer shrink-0 whitespace-nowrap"
+                                className="inline-flex items-center gap-1 px-3 py-1 font-medium text-[#9A6B22] border border-[#9A6B22]/35 hover:border-[#9A6B22] rounded-full transition-all duration-300 cursor-pointer shrink-0 whitespace-nowrap"
                               >
                                 <Maximize2 className="w-3 h-3" />
                                 <span>크게 보기</span>
@@ -418,7 +418,7 @@ export function NoticesAndContactSection({
                   <button
                     type="button"
                     onClick={onOpenDirections}
-                    className="inline-flex items-center gap-1 text-xs font-medium text-[#9A6B22] hover:underline cursor-pointer"
+                    className="inline-flex items-center gap-1.5 px-4 py-1.5 text-xs font-medium text-[#9A6B22] bg-[#FBF9F5] border border-[#9A6B22]/40 hover:border-[#9A6B22] rounded-full transition-all duration-300 cursor-pointer"
                   >
                     <span>선교회 소개 · 오시는 길 보기</span>
                     <ArrowRight className="w-3.5 h-3.5" />
@@ -470,7 +470,7 @@ export function NoticesAndContactSection({
                 <button
                   type="button"
                   onClick={() => setSubmittedData(null)}
-                  className="text-xs font-medium text-[#9A6B22] underline underline-offset-4 cursor-pointer"
+                  className="inline-flex items-center px-4 py-1.5 text-xs font-medium text-[#9A6B22] border border-[#9A6B22]/40 hover:border-[#9A6B22] rounded-full transition-all duration-300 cursor-pointer"
                 >
                   추가 문의 작성하기
                 </button>
@@ -566,7 +566,7 @@ export function NoticesAndContactSection({
                   <button
                     type="submit"
                     disabled={isSubmittingInquiry}
-                    className="px-6 py-2.5 text-sm font-medium text-[#FBF9F5] bg-[#1C1917] hover:bg-[#342F2B] rounded-md transition-colors whitespace-nowrap shrink-0 cursor-pointer disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#9A6B22]"
+                    className="px-7 py-3 text-sm font-medium text-[#FBF9F5] bg-[#1C1917] hover:bg-[#342F2B] rounded-full transition-all duration-300 ease-out whitespace-nowrap shrink-0 cursor-pointer disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#9A6B22]"
                   >
                     {isSubmittingInquiry ? '접수 중...' : '문의 접수하기'}
                   </button>

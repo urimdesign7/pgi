@@ -73,12 +73,12 @@ export function AboutSection({ requestedTab }: AboutSectionProps) {
     <section id="about" className="py-16 sm:py-24 border-t border-stone-200/80 bg-[#FBF9F5]">
       <div className="max-w-[1200px] mx-auto px-4 sm:px-8">
         {/* Section Header + Segmented Switcher */}
-        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 pb-8 border-b border-stone-200">
-          <div>
+        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-5 pb-8 border-b border-stone-200">
+          <div className="min-w-0">
             <p className="text-xs font-medium text-[#9A6B22] tracking-wide mb-2">
               01. 선교회 소개 · {MISSION_META.affiliation}
             </p>
-            <h2 className="font-editorial text-2xl sm:text-4xl font-semibold text-[#1C1917] tracking-tight text-balance">
+            <h2 className="font-editorial text-2xl sm:text-3xl xl:text-[34px] font-semibold text-[#1C1917] tracking-tight text-balance">
               기도와 예배로 주님의 오심을 준비하는 공동체
             </h2>
           </div>
@@ -86,7 +86,7 @@ export function AboutSection({ requestedTab }: AboutSectionProps) {
           <div
             role="tablist"
             aria-label="선교회 소개 하위 메뉴"
-            className="inline-flex flex-wrap items-center gap-1 p-1 bg-[#EBE6DF] rounded-lg self-start lg:self-auto"
+            className="inline-flex flex-nowrap items-center gap-1 p-1 bg-[#EBE6DF] rounded-full self-start lg:self-auto shrink-0 max-w-full overflow-x-auto"
           >
             {(
               [
@@ -104,7 +104,7 @@ export function AboutSection({ requestedTab }: AboutSectionProps) {
                   role="tab"
                   aria-selected={isActive}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`px-4 py-2 text-xs sm:text-sm font-medium rounded-md transition-colors duration-150 whitespace-nowrap shrink-0 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#9A6B22] ${
+                  className={`px-3.5 sm:px-4 py-2 text-xs sm:text-[13px] font-medium rounded-full transition-all duration-300 whitespace-nowrap shrink-0 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#9A6B22] ${
                     isActive
                       ? 'bg-[#FBF9F5] text-[#1C1917] shadow-sm'
                       : 'text-[#57534E] hover:text-[#1C1917]'
@@ -237,13 +237,13 @@ export function AboutSection({ requestedTab }: AboutSectionProps) {
                 {earliestYear}년 설립 발대식부터 {latestYear}년 사역까지의 발자취입니다.
               </p>
 
-              <div className="inline-flex flex-wrap items-center gap-1 p-1 bg-[#EBE6DF] rounded-lg">
+              <div className="inline-flex flex-wrap items-center gap-1 p-1 bg-[#EBE6DF] rounded-full">
                 {['all', ...availableYears].map((year) => (
                   <button
                     key={year}
                     type="button"
                     onClick={() => setSelectedYear(year)}
-                    className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors cursor-pointer font-tabular whitespace-nowrap shrink-0 ${
+                    className={`px-4 py-1.5 text-xs font-medium rounded-full transition-all duration-300 cursor-pointer font-tabular whitespace-nowrap shrink-0 ${
                       effectiveYear === year
                         ? 'bg-[#FBF9F5] text-[#1C1917] shadow-sm'
                         : 'text-[#57534E] hover:text-[#1C1917]'
@@ -324,7 +324,7 @@ export function AboutSection({ requestedTab }: AboutSectionProps) {
                   <button
                     type="button"
                     onClick={handleCopyAddress}
-                    className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-medium text-[#1C1917] bg-[#FBF9F5] border border-stone-300 hover:border-stone-400 rounded-md transition-colors cursor-pointer whitespace-nowrap"
+                    className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-medium text-[#1C1917] bg-[#FBF9F5] border border-stone-300 hover:border-[#1C1917] rounded-full transition-all duration-300 cursor-pointer whitespace-nowrap"
                   >
                     {copiedAddress ? (
                       <>
@@ -344,7 +344,7 @@ export function AboutSection({ requestedTab }: AboutSectionProps) {
                     )}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-medium text-[#57534E] bg-[#FBF9F5] border border-stone-300 hover:border-stone-400 hover:text-[#1C1917] rounded-md transition-colors whitespace-nowrap"
+                    className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-medium text-[#57534E] bg-[#FBF9F5] border border-stone-300 hover:border-[#1C1917] hover:text-[#1C1917] rounded-full transition-all duration-300 whitespace-nowrap"
                   >
                     <span>Google 지도 열기</span>
                     <ArrowUpRight className="w-3.5 h-3.5" />
@@ -408,7 +408,7 @@ export function AboutSection({ requestedTab }: AboutSectionProps) {
                 </div>
                 <a
                   href="#contact"
-                  className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-medium text-[#FBF9F5] bg-[#1C1917] hover:bg-[#342F2B] rounded-md transition-colors whitespace-nowrap shrink-0 self-start sm:self-auto"
+                  className="inline-flex items-center gap-1.5 px-6 py-2.5 text-xs font-medium text-[#FBF9F5] bg-[#1C1917] hover:bg-[#342F2B] rounded-full transition-all duration-300 ease-out whitespace-nowrap shrink-0 self-start sm:self-auto"
                 >
                   <span>사역 · 방문 문의</span>
                   <ArrowRight className="w-3.5 h-3.5" />

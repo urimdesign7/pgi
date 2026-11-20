@@ -103,19 +103,20 @@ export function HeroSection({ onOpenLiveModal }: HeroSectionProps) {
           </div>
 
           <div className="w-full flex flex-wrap items-center justify-between gap-4 pt-2 border-t border-[#FBF9F5]/15">
-            <div className="flex flex-wrap items-center gap-5 pt-2">
+            <div className="flex flex-wrap items-center gap-4 pt-2">
               <button
                 type="button"
                 onClick={onOpenLiveModal}
-                className="inline-flex items-center gap-2 px-5 py-3 text-sm font-medium text-[#1C1917] bg-[#E7D3AC] hover:bg-[#F2E3C4] rounded-md transition-colors duration-150 whitespace-nowrap shrink-0 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E7D3AC] focus-visible:ring-offset-2 focus-visible:ring-offset-[#1C1917]"
+                className="inline-flex items-center gap-2 px-7 py-3 text-sm font-medium text-[#1C1917] bg-[#E7D3AC] hover:bg-[#F2E3C4] rounded-full transition-all duration-300 ease-out whitespace-nowrap shrink-0 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E7D3AC] focus-visible:ring-offset-2 focus-visible:ring-offset-[#1C1917]"
               >
                 <Radio className="w-4 h-4" />
                 <span>화요예배 및 생중계 안내</span>
+                <ChevronRight className="w-4 h-4" />
               </button>
 
               <a
                 href="#about"
-                className="inline-flex items-center gap-1.5 text-sm font-medium text-[#FBF9F5] hover:text-[#E7D3AC] transition-colors duration-150 whitespace-nowrap shrink-0 py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E7D3AC] rounded-sm"
+                className="inline-flex items-center gap-1.5 px-6 py-3 text-sm font-medium text-[#FBF9F5] border border-[#FBF9F5]/75 hover:border-[#FBF9F5] hover:bg-[#FBF9F5]/10 rounded-full transition-all duration-300 ease-out whitespace-nowrap shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E7D3AC]"
               >
                 <span>선교회 비전 · 인사말 보기</span>
                 <ArrowRight className="w-4 h-4" />
@@ -153,12 +154,12 @@ export function HeroSection({ onOpenLiveModal }: HeroSectionProps) {
                 0{activeIndex + 1} / 0{HERO_SLIDES.length}
               </span>
 
-              <div className="flex items-center gap-1">
+              <div className="flex items-center gap-1.5">
                 <button
                   type="button"
                   onClick={goToPrev}
                   aria-label="이전 이미지"
-                  className="w-9 h-9 inline-flex items-center justify-center rounded-md border border-[#FBF9F5]/25 bg-[#1C1917]/45 text-[#FBF9F5] hover:bg-[#1C1917]/80 transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E7D3AC]"
+                  className="w-10 h-10 inline-flex items-center justify-center rounded-full border border-[#FBF9F5]/40 bg-[#1C1917]/45 text-[#FBF9F5] hover:bg-[#1C1917]/80 hover:border-[#FBF9F5] transition-all duration-300 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E7D3AC]"
                 >
                   <ChevronLeft className="w-4 h-4" />
                 </button>
@@ -166,7 +167,7 @@ export function HeroSection({ onOpenLiveModal }: HeroSectionProps) {
                   type="button"
                   onClick={goToNext}
                   aria-label="다음 이미지"
-                  className="w-9 h-9 inline-flex items-center justify-center rounded-md border border-[#FBF9F5]/25 bg-[#1C1917]/45 text-[#FBF9F5] hover:bg-[#1C1917]/80 transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E7D3AC]"
+                  className="w-10 h-10 inline-flex items-center justify-center rounded-full border border-[#FBF9F5]/40 bg-[#1C1917]/45 text-[#FBF9F5] hover:bg-[#1C1917]/80 hover:border-[#FBF9F5] transition-all duration-300 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E7D3AC]"
                 >
                   <ChevronRight className="w-4 h-4" />
                 </button>

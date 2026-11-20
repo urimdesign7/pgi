@@ -150,7 +150,7 @@ function MissionMapInner() {
           href={externalMapUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-[#9A6B22] bg-[#FBF9F5] border border-stone-300 rounded-md hover:border-[#9A6B22] transition-colors"
+          className="inline-flex items-center gap-1.5 px-5 py-2 text-xs font-medium text-[#9A6B22] bg-[#FBF9F5] border border-[#9A6B22]/40 hover:border-[#9A6B22] rounded-full transition-all duration-300"
         >
           <span>Google 지도에서 위치 보기</span>
           <ExternalLink className="w-3.5 h-3.5" />
@@ -245,7 +245,7 @@ export function MissionLocationMap() {
           )}`}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-[#9A6B22] bg-[#FBF9F5] border border-stone-300 rounded-md hover:border-[#9A6B22] transition-colors"
+          className="inline-flex items-center gap-1.5 px-5 py-2 text-xs font-medium text-[#9A6B22] bg-[#FBF9F5] border border-[#9A6B22]/40 hover:border-[#9A6B22] rounded-full transition-all duration-300"
         >
           <span>Google 지도에서 위치 보기</span>
           <ExternalLink className="w-3.5 h-3.5" />
