@@ -10,6 +10,11 @@ import {
   type NoticeItem,
 } from '../data/pgiData';
 import { subscribePublishedNotices } from '../services/noticeService';
+import {
+  createInquiry,
+  INQUIRY_CONSTRAINTS,
+  validateInquiryInput,
+} from '../services/inquiryService';
 import { GalleryPresentation } from './GalleryPresentation';
 
 interface NoticesAndContactSectionProps {
@@ -70,6 +75,7 @@ export function NoticesAndContactSection({
   const [topic, setTopic] = useState(preselectedTopic || '화요예배 및 방문 문의');
   const [message, setMessage] = useState('');
   const [formError, setFormError] = useState('');
+  const [isSubmittingInquiry, setIsSubmittingInquiry] = useState(false);
   const [submittedData, setSubmittedData] = useState<{
     name: string;
     topic: string;
@@ -93,35 +99,39 @@ export function NoticesAndContactSection({
   const activePresentation: NoticeItem | undefined =
     activeGalleries.find((g) => String(g.id) === String(selectedGalleryId)) ?? activeGalleries[0];
 
-  const handleSubmit = (e: FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setFormError('');
 
-    const trimmedName = name.trim();
-    const trimmedContact = contact.trim();
-    const trimmedMessage = message.trim();
+    const payload = {
+      name: name.trim(),
+      contact: contact.trim(),
+      topic,
+      message: message.trim(),
+    };
 
-    if (trimmedName.length < 2) {
-      setFormError('성함 또는 교회/단체명을 두 글자 이상 입력해 주세요.');
+    const validationError = validateInquiryInput(payload);
+    if (validationError) {
+      setFormError(validationError);
       return;
     }
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    const phoneDigits = trimmedContact.replace(/[^0-9]/g, '');
-    if (!emailRegex.test(trimmedContact) && phoneDigits.length < 9) {
-      setFormError('연락 가능한 전화번호 또는 이메일 주소를 정확히 입력해 주세요.');
-      return;
+    setIsSubmittingInquiry(true);
+    try {
+      await createInquiry(payload);
+      setSubmittedData({ name: payload.name, topic: payload.topic });
+      setName('');
+      setContact('');
+      setMessage('');
+    } catch (err) {
+      setFormError(
+        err instanceof Error && err.message
+          ? err.message
+          : '문의 접수 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.'
+      );
+    } finally {
+      setIsSubmittingInquiry(false);
     }
-
-    if (trimmedMessage.length < 5) {
-      setFormError('문의 내용을 5자 이상 작성해 주세요.');
-      return;
-    }
-
-    setSubmittedData({ name: trimmedName, topic });
-    setName('');
-    setContact('');
-    setMessage('');
   };
 
   return (
@@ -453,8 +463,9 @@ export function NoticesAndContactSection({
                 <p className="text-sm text-[#57534E] leading-relaxed">
                   <strong className="text-[#1C1917]">{submittedData.name}</strong>님, 요청하신{' '}
                   <strong className="text-[#1C1917]">[{submittedData.topic}]</strong> 문의가
-                  기록되었습니다. 확인 후 남겨주신 연락처로 신속히 회신드리겠습니다. 긴급한 안내는
-                  사무국({MISSION_META.phone})으로 전화 주시기 바랍니다.
+                  사무국에 정상적으로 등록되었습니다. 관리자 확인 후 남겨주신 연락처로 신속히
+                  회신드리겠습니다. 긴급한 안내는 사무국({MISSION_META.phone})으로 전화 주시기
+                  바랍니다.
                 </p>
                 <button
                   type="button"
@@ -477,6 +488,7 @@ export function NoticesAndContactSection({
                     <input
                       id="inquiry-name"
                       type="text"
+                      maxLength={INQUIRY_CONSTRAINTS.NAME_MAX}
                       value={name}
                       onChange={(e) => setName(e.target.value)}
                       placeholder="예: 홍길동 (빛과소금교회)"
@@ -494,6 +506,7 @@ export function NoticesAndContactSection({
                     <input
                       id="inquiry-contact"
                       type="text"
+                      maxLength={INQUIRY_CONSTRAINTS.CONTACT_MAX}
                       value={contact}
                       onChange={(e) => setContact(e.target.value)}
                       placeholder="예: 010-1234-5678"
@@ -534,6 +547,7 @@ export function NoticesAndContactSection({
                   <textarea
                     id="inquiry-message"
                     rows={4}
+                    maxLength={INQUIRY_CONSTRAINTS.MESSAGE_MAX}
                     value={message}
                     onChange={(e) => setMessage(e.target.value)}
                     placeholder="참여 희망 과정, 인원, 또는 궁금하신 사항을 자유롭게 남겨주세요."
@@ -551,9 +565,10 @@ export function NoticesAndContactSection({
                   <p className="text-xs text-[#78716C]">전화 직접 상담: {MISSION_META.phone}</p>
                   <button
                     type="submit"
-                    className="px-6 py-2.5 text-sm font-medium text-[#FBF9F5] bg-[#1C1917] hover:bg-[#342F2B] rounded-md transition-colors whitespace-nowrap shrink-0 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#9A6B22]"
+                    disabled={isSubmittingInquiry}
+                    className="px-6 py-2.5 text-sm font-medium text-[#FBF9F5] bg-[#1C1917] hover:bg-[#342F2B] rounded-md transition-colors whitespace-nowrap shrink-0 cursor-pointer disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#9A6B22]"
                   >
-                    문의 접수하기
+                    {isSubmittingInquiry ? '접수 중...' : '문의 접수하기'}
                   </button>
                 </div>
               </form>

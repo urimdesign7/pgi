@@ -577,7 +577,7 @@ export const GALLERY_BASELINE_ITEMS: NoticeItem[] = [
     id: 'gallery_jerusalem_2025',
     category: '갤러리',
     title: '이스라엘 단기선교 및 예루살렘 중보 예배',
-    dateLabel: '2025.05 · 열방선교',
+    dateLabel: '2025.05.25',
     summary: '예루살렘의 평안을 구하며 현장 예배와 성지 중보 사역을 감당한 이스라엘 단기선교 기록입니다.',
     body: [
       '“예루살렘을 위하여 평안을 구하라 예루살렘을 사랑하는 자는 형통하리로다”(시 122:6)',
@@ -594,7 +594,7 @@ export const GALLERY_BASELINE_ITEMS: NoticeItem[] = [
     id: 'gallery_conference_2025',
     category: '갤러리',
     title: 'PGI 기도 말씀 컨퍼런스 말씀 연구',
-    dateLabel: '2025.04 · 기도컨퍼런스',
+    dateLabel: '2025.04.26',
     summary: '선지서 강해와 분향단의 기도로 시대를 분별하며 주님의 오심을 준비하는 컨퍼런스 현장입니다.',
     body: [
       '이사야, 미가, 에스겔, 다니엘, 스가랴, 요한계시록 말씀을 체계적으로 배우며 시대를 분별하는 기도 말씀 컨퍼런스 사역 기록입니다.',
@@ -610,7 +610,7 @@ export const GALLERY_BASELINE_ITEMS: NoticeItem[] = [
     id: 'gallery_youth_2025',
     category: '갤러리',
     title: '청년 · 청소년 청청 복음캠프 워십',
-    dateLabel: '2025.07 · 다음세대',
+    dateLabel: '2025.07.24',
     summary: '말씀 위에 견고히 서서 세상의 거짓을 이기는 믿음의 다음세대와 함께한 청청캠프 현장입니다.',
     body: [
       '한국교회의 청년과 청소년들이 말씀 강해와 찬양, 소그룹 교제를 통해 진리를 분별하는 믿음의 공동체로 세워졌습니다.',
@@ -626,7 +626,7 @@ export const GALLERY_BASELINE_ITEMS: NoticeItem[] = [
     id: 'gallery_tuesday_worship',
     category: '갤러리',
     title: '매주 화요 정기 토라포션 예배',
-    dateLabel: '화요정기예배 · 수원 PGI센터',
+    dateLabel: '2024.11.18',
     summary: '매주 화요일 오전·오후에 모여 모세오경 토라포션을 배우고 분향단의 기도를 드리는 본당 예배입니다.',
     body: [
       '수원 빛과소금교회 PGI센터에서 매주 화요일 오전 10:30, 오후 1:30에 함께 예배하며 말씀을 나눕니다.',
@@ -642,7 +642,7 @@ export const GALLERY_BASELINE_ITEMS: NoticeItem[] = [
     id: 'gallery_sanctuary_prayer',
     category: '갤러리',
     title: '수원 PGI 선교회 성전 예배 및 기도회',
-    dateLabel: '예배 · 중보기도',
+    dateLabel: '2025.01.07',
     summary: '복음 증거와 예배로 분향단의 기도를 채워 나가는 PGI 공동체의 정기 예배 모습입니다.',
     body: [
       '매주 화요예배와 목요 정기 기도회를 통해 한국교회와 이스라엘, 열방 선교지를 위해 기도의 향을 올리고 있습니다.',
@@ -657,7 +657,7 @@ export const GALLERY_BASELINE_ITEMS: NoticeItem[] = [
     id: 'gallery_disciple_school',
     category: '갤러리',
     title: '디싸이플 스쿨(Disciple School) 말씀 양육',
-    dateLabel: '제자스쿨 · 말씀훈련',
+    dateLabel: '2025.07.03',
     summary: '천국 복음을 증거하는 주의 제자이자 신부로 단장되는 집중 말씀 양육 사역 기록입니다.',
     body: [
       '마태복음 4장 17절의 부르심을 따라 깊은 말씀 묵상과 합숙 훈련으로 동역하는 제자스쿨 현장입니다.',

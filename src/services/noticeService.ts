@@ -365,12 +365,15 @@ export async function deleteNotice(id: string): Promise<void> {
   }
 }
 
-export async function seedBaselineNotices(): Promise<number> {
+export async function seedBaselineNotices(
+  existingIds: Iterable<string> = []
+): Promise<number> {
   const user = auth.currentUser;
   if (!user) {
     throw new Error('관리자 로그인이 필요합니다.');
   }
 
+  const existingSet = new Set(existingIds);
   let count = 0;
   const baselineItems = [
     ...NOTICES.map((item) => ({ ...item, idKey: `seed_notice_${item.id}` })),
@@ -379,6 +382,8 @@ export async function seedBaselineNotices(): Promise<number> {
 
   for (const item of baselineItems) {
     const id = item.idKey;
+    if (existingSet.has(id)) continue;
+
     const path = `notices/${id}`;
     const imageUrls = normalizeImageUrlList(item.imageUrl, item.imageUrls);
     try {
@@ -403,6 +408,100 @@ export async function seedBaselineNotices(): Promise<number> {
     }
   }
   return count;
+}
+
+export async function seedMissingBaselineGalleries(
+  existingIds: Iterable<string> = []
+): Promise<number> {
+  const user = auth.currentUser;
+  if (!user) {
+    throw new Error('관리자 로그인이 필요합니다.');
+  }
+
+  const existingSet = new Set(existingIds);
+  let count = 0;
+
+  for (const item of GALLERY_BASELINE_ITEMS) {
+    const id = `seed_${item.id}`;
+    if (existingSet.has(id)) continue;
+
+    const path = `notices/${id}`;
+    const imageUrls = normalizeImageUrlList(item.imageUrl, item.imageUrls);
+    try {
+      await setDoc(doc(db, 'notices', id), {
+        title: item.title.slice(0, NOTICE_CONSTRAINTS.TITLE_MAX),
+        category: '갤러리',
+        dateLabel: item.dateLabel.slice(0, NOTICE_CONSTRAINTS.DATE_MAX),
+        summary: item.summary.slice(0, NOTICE_CONSTRAINTS.SUMMARY_MAX),
+        content: item.body.join('\n\n').slice(0, NOTICE_CONSTRAINTS.CONTENT_MAX),
+        imageUrl: imageUrls[0] ?? '',
+        imageUrls,
+        isPinned: false,
+        isPublished: true,
+        authorId: user.uid,
+        authorName: 'PGI 선교회 사무국',
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      });
+      count += 1;
+    } catch (error) {
+      handleFirestoreError(error, OperationType.CREATE, path);
+    }
+  }
+  return count;
+}
+
+const LEGACY_GALLERY_DATE_MAP: Record<string, { legacyValues: string[]; nextDate: string }> = {
+  seed_gallery_jerusalem_2025: {
+    legacyValues: ['2025.05 · 열방선교'],
+    nextDate: '2025.05.25',
+  },
+  seed_gallery_conference_2025: {
+    legacyValues: ['2025.04 · 기도컨퍼런스'],
+    nextDate: '2025.04.26',
+  },
+  seed_gallery_youth_2025: {
+    legacyValues: ['2025.07 · 다음세대'],
+    nextDate: '2025.07.24',
+  },
+  seed_gallery_tuesday_worship: {
+    legacyValues: ['화요정기예배 · 수원 PGI센터'],
+    nextDate: '2024.11.18',
+  },
+  seed_gallery_sanctuary_prayer: {
+    legacyValues: ['예배 · 중보기도'],
+    nextDate: '2025.01.07',
+  },
+  seed_gallery_disciple_school: {
+    legacyValues: ['제자스쿨 · 말씀훈련'],
+    nextDate: '2025.07.03',
+  },
+};
+
+export async function syncLegacyGalleryDateLabels(
+  existingNotices: FirestoreNotice[]
+): Promise<number> {
+  const user = auth.currentUser;
+  if (!user) return 0;
+
+  let updatedCount = 0;
+  for (const notice of existingNotices) {
+    const rule = LEGACY_GALLERY_DATE_MAP[notice.id];
+    if (!rule) continue;
+    if (!rule.legacyValues.includes(notice.dateLabel.trim())) continue;
+
+    const path = `notices/${notice.id}`;
+    try {
+      await updateDoc(doc(db, 'notices', notice.id), {
+        dateLabel: rule.nextDate,
+        updatedAt: serverTimestamp(),
+      });
+      updatedCount += 1;
+    } catch (error) {
+      handleFirestoreError(error, OperationType.UPDATE, path);
+    }
+  }
+  return updatedCount;
 }
 
 export async function resolveAdminStatus(user: User | null): Promise<{

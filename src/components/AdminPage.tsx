@@ -1,7 +1,8 @@
-import { useEffect, useState, type ChangeEvent, type FormEvent } from 'react';
+import { useEffect, useRef, useState, type ChangeEvent, type FormEvent } from 'react';
 import { onAuthStateChanged, signInWithPopup, signOut, type User } from 'firebase/auth';
 import {
   ArrowLeft,
+  Calendar,
   CalendarPlus,
   Check,
   ChevronLeft,
@@ -15,6 +16,7 @@ import {
   LogIn,
   LogOut,
   MapPin,
+  MessageSquare,
   Phone,
   Pin,
   Plus,
@@ -43,7 +45,9 @@ import {
   removeAdminRecord,
   resolveAdminStatus,
   seedBaselineNotices,
+  seedMissingBaselineGalleries,
   subscribeAdminNotices,
+  syncLegacyGalleryDateLabels,
   updateNotice,
   validateNoticeInput,
   type AdminRecord,
@@ -73,13 +77,23 @@ import {
   type ParticipantInput,
 } from '../services/participantService';
 import {
+  deleteInquiry,
+  INQUIRY_CONSTRAINTS,
+  INQUIRY_STATUSES,
+  subscribeInquiries,
+  updateInquiryAdminState,
+  type FirestoreInquiry,
+  type InquiryStatus,
+} from '../services/inquiryService';
+import {
+  GALLERY_BASELINE_ITEMS,
   getNoticeImages,
   normalizeCommunityCategory,
   type CommunityCategory,
   type NoticeCategory,
 } from '../data/pgiData';
 
-export type AdminSectionTab = 'notices' | 'history' | 'participants';
+export type AdminSectionTab = 'notices' | 'history' | 'participants' | 'inquiries';
 
 interface AdminPageProps {
   initialTab?: AdminSectionTab;
@@ -159,12 +173,16 @@ export function AdminPage({ initialTab = 'notices', onChangeTab, onBackToSite }:
     setConfirmDeleteNoticeId(null);
     setConfirmDeleteHistoryId(null);
     setConfirmDeleteParticipantId(null);
+    setConfirmDeleteInquiryId(null);
     onChangeTab?.(tab);
   };
 
   // Notices / Community State
   const [notices, setNotices] = useState<FirestoreNotice[]>([]);
   const [noticeListLoading, setNoticeListLoading] = useState(false);
+  const [hasLoadedNotices, setHasLoadedNotices] = useState(false);
+  const hasAutoSeededGalleriesRef = useRef(false);
+  const hasSyncedGalleryDatesRef = useRef(false);
   const [noticeCategoryFilter, setNoticeCategoryFilter] = useState<'all' | CommunityCategory>('all');
   const [noticeStatusFilter, setNoticeStatusFilter] = useState<'all' | 'published' | 'draft'>('all');
   const [editingNoticeId, setEditingNoticeId] = useState<string | null>(null);
@@ -211,6 +229,19 @@ export function AdminPage({ initialTab = 'notices', onChangeTab, onBackToSite }:
   const [participantPhotoMode, setParticipantPhotoMode] = useState<'upload' | 'url'>('upload');
   const [isProcessingParticipantPhoto, setIsProcessingParticipantPhoto] = useState(false);
   const [participantPhotoMetaNote, setParticipantPhotoMetaNote] = useState('');
+
+  // Inquiries State (Bootstrapped Admin PII Isolation)
+  const [inquiries, setInquiries] = useState<FirestoreInquiry[]>([]);
+  const [inquiryListLoading, setInquiryListLoading] = useState(false);
+  const [inquiryStatusFilter, setInquiryStatusFilter] = useState<'all' | InquiryStatus>('all');
+  const [inquirySearch, setInquirySearch] = useState('');
+  const [editingInquiryId, setEditingInquiryId] = useState<string | null>(null);
+  const [inquiryEditStatus, setInquiryEditStatus] = useState<InquiryStatus>('확인됨');
+  const [inquiryEditNote, setInquiryEditNote] = useState('');
+  const [inquiryActionError, setInquiryActionError] = useState('');
+  const [inquiryActionSuccess, setInquiryActionSuccess] = useState('');
+  const [isSavingInquiry, setIsSavingInquiry] = useState(false);
+  const [confirmDeleteInquiryId, setConfirmDeleteInquiryId] = useState<string | null>(null);
 
   // Admin Management State (Bootstrapped Admin Only)
   const [showAdminPanel, setShowAdminPanel] = useState(false);
@@ -263,8 +294,12 @@ export function AdminPage({ initialTab = 'notices', onChangeTab, onBackToSite }:
   useEffect(() => {
     if (!isAdmin) {
       setNotices([]);
+      setHasLoadedNotices(false);
+      hasAutoSeededGalleriesRef.current = false;
+      hasSyncedGalleryDatesRef.current = false;
       setHistories([]);
       setParticipants([]);
+      setInquiries([]);
       return;
     }
 
@@ -274,6 +309,7 @@ export function AdminPage({ initialTab = 'notices', onChangeTab, onBackToSite }:
       (items) => {
         setNotices(items);
         setNoticeListLoading(false);
+        setHasLoadedNotices(true);
       },
       (err) => {
         setNoticeFormError(
@@ -299,6 +335,7 @@ export function AdminPage({ initialTab = 'notices', onChangeTab, onBackToSite }:
     );
 
     let unsubParticipants = () => {};
+    let unsubInquiries = () => {};
     if (isBootstrapped) {
       setParticipantListLoading(true);
       unsubParticipants = subscribeParticipants(
@@ -314,17 +351,101 @@ export function AdminPage({ initialTab = 'notices', onChangeTab, onBackToSite }:
           setParticipantListLoading(false);
         }
       );
+
+      setInquiryListLoading(true);
+      unsubInquiries = subscribeInquiries(
+        true,
+        (items) => {
+          setInquiries(items);
+          setInquiryListLoading(false);
+        },
+        (err) => {
+          setInquiryActionError(
+            err instanceof Error ? err.message : '문의 목록을 불러오지 못했습니다.'
+          );
+          setInquiryListLoading(false);
+        }
+      );
     } else {
       setParticipants([]);
       setParticipantListLoading(false);
+      setInquiries([]);
+      setInquiryListLoading(false);
     }
 
     return () => {
       unsubNotices();
       unsubHistories();
       unsubParticipants();
+      unsubInquiries();
     };
   }, [isAdmin, isBootstrapped]);
+
+  const noticeOnlyCount = notices.filter(
+    (n) => normalizeCommunityCategory(n.category) === '공지'
+  ).length;
+  const galleryNoticeCount = notices.filter(
+    (n) => normalizeCommunityCategory(n.category) === '갤러리'
+  ).length;
+  const hasMissingBaselineGalleries = GALLERY_BASELINE_ITEMS.some(
+    (g) => !notices.some((n) => n.id === `seed_${g.id}`)
+  );
+
+  // Sync homepage baseline gallery items into Firestore once when no gallery exists yet
+  useEffect(() => {
+    if (
+      !isAdmin ||
+      !isBootstrapped ||
+      !hasLoadedNotices ||
+      galleryNoticeCount > 0 ||
+      hasAutoSeededGalleriesRef.current
+    ) {
+      return;
+    }
+
+    try {
+      if (window.localStorage.getItem('pgi_baseline_galleries_seeded_v1') === 'true') {
+        return;
+      }
+    } catch {
+      // Ignore storage access errors
+    }
+
+    hasAutoSeededGalleriesRef.current = true;
+    setIsSeedingNotices(true);
+    void seedMissingBaselineGalleries(notices.map((n) => n.id))
+      .then((count) => {
+        try {
+          window.localStorage.setItem('pgi_baseline_galleries_seeded_v1', 'true');
+        } catch {
+          // Ignore storage access errors
+        }
+        if (count > 0) {
+          setNoticeFormSuccess(
+            `커뮤니티 갤러리 ${count}건을 관리자 목록으로 자동으로 불러왔습니다.`
+          );
+        }
+      })
+      .catch((err) => {
+        setNoticeFormError(
+          err instanceof Error ? err.message : '기본 갤러리를 불러오는 중 오류가 발생했습니다.'
+        );
+      })
+      .finally(() => {
+        setIsSeedingNotices(false);
+      });
+  }, [isAdmin, isBootstrapped, hasLoadedNotices, galleryNoticeCount, notices]);
+
+  // Backfill legacy non-date gallery dateLabels (e.g. '화요정기예배 · 수원 PGI센터') to YYYY.MM.DD dates once
+  useEffect(() => {
+    if (!isAdmin || !hasLoadedNotices || notices.length === 0 || hasSyncedGalleryDatesRef.current) {
+      return;
+    }
+    hasSyncedGalleryDatesRef.current = true;
+    void syncLegacyGalleryDateLabels(notices).catch(() => {
+      // Non-fatal background sync
+    });
+  }, [isAdmin, hasLoadedNotices, notices]);
 
   // Load added admins list for Bootstrapped Admin
   useEffect(() => {
@@ -511,7 +632,8 @@ export function AdminPage({ initialTab = 'notices', onChangeTab, onBackToSite }:
       trimmed.startsWith('https://') ||
       trimmed.startsWith('http://') ||
       trimmed.startsWith('data:image/') ||
-      trimmed.startsWith('/assets/');
+      trimmed.startsWith('/assets/') ||
+      trimmed.startsWith('/src/assets/');
     if (!isAllowed) {
       setNoticeFormError('https:// 또는 http://로 시작하는 이미지 URL을 입력해 주세요.');
       return;
@@ -630,11 +752,45 @@ export function AdminPage({ initialTab = 'notices', onChangeTab, onBackToSite }:
     setNoticeFormSuccess('');
     setIsSeedingNotices(true);
     try {
-      const count = await seedBaselineNotices();
-      setNoticeFormSuccess(`기본 공지 및 갤러리 ${count}건을 데이터베이스에 등록했습니다.`);
+      const count = await seedBaselineNotices(notices.map((n) => n.id));
+      try {
+        window.localStorage.setItem('pgi_baseline_galleries_seeded_v1', 'true');
+      } catch {
+        // Ignore storage access errors
+      }
+      setNoticeFormSuccess(
+        count > 0
+          ? `기본 공지 및 갤러리 ${count}건을 데이터베이스에 등록했습니다.`
+          : '모든 기본 공지와 갤러리가 이미 등록되어 있습니다.'
+      );
     } catch (err) {
       setNoticeFormError(
         err instanceof Error ? err.message : '초기 게시글 등록 중 오류가 발생했습니다.'
+      );
+    } finally {
+      setIsSeedingNotices(false);
+    }
+  };
+
+  const handleSeedBaselineGalleries = async () => {
+    setNoticeFormError('');
+    setNoticeFormSuccess('');
+    setIsSeedingNotices(true);
+    try {
+      const count = await seedMissingBaselineGalleries(notices.map((n) => n.id));
+      try {
+        window.localStorage.setItem('pgi_baseline_galleries_seeded_v1', 'true');
+      } catch {
+        // Ignore storage access errors
+      }
+      setNoticeFormSuccess(
+        count > 0
+          ? `커뮤니티 기본 갤러리 ${count}건을 데이터베이스에 등록했습니다.`
+          : '모든 기본 갤러리가 이미 등록되어 있습니다.'
+      );
+    } catch (err) {
+      setNoticeFormError(
+        err instanceof Error ? err.message : '기본 갤러리 등록 중 오류가 발생했습니다.'
       );
     } finally {
       setIsSeedingNotices(false);
@@ -840,6 +996,61 @@ export function AdminPage({ initialTab = 'notices', onChangeTab, onBackToSite }:
     }
   };
 
+  // --- Inquiry Handlers ---
+  const handleStartEditInquiry = (item: FirestoreInquiry) => {
+    setEditingInquiryId(item.id);
+    setInquiryEditStatus(item.status);
+    setInquiryEditNote(item.adminNote);
+    setInquiryActionError('');
+    setInquiryActionSuccess('');
+  };
+
+  const handleSaveInquiryEdit = async (e: FormEvent, inquiryId: string) => {
+    e.preventDefault();
+    setInquiryActionError('');
+    setInquiryActionSuccess('');
+    setIsSavingInquiry(true);
+    try {
+      await updateInquiryAdminState(inquiryId, inquiryEditStatus, inquiryEditNote);
+      setEditingInquiryId(null);
+      setInquiryActionSuccess('문의 처리 상태와 메모가 저장되었습니다.');
+    } catch (err) {
+      setInquiryActionError(
+        err instanceof Error ? err.message : '문의 상태 저장 중 오류가 발생했습니다.'
+      );
+    } finally {
+      setIsSavingInquiry(false);
+    }
+  };
+
+  const handleQuickInquiryStatus = async (item: FirestoreInquiry, nextStatus: InquiryStatus) => {
+    setInquiryActionError('');
+    setInquiryActionSuccess('');
+    try {
+      await updateInquiryAdminState(item.id, nextStatus, item.adminNote);
+      setInquiryActionSuccess(`${item.name}님 문의 상태를 ‘${nextStatus}’으로 변경했습니다.`);
+    } catch (err) {
+      setInquiryActionError(
+        err instanceof Error ? err.message : '상태 변경 중 오류가 발생했습니다.'
+      );
+    }
+  };
+
+  const handleConfirmDeleteInquiry = async (id: string) => {
+    setInquiryActionError('');
+    setInquiryActionSuccess('');
+    try {
+      await deleteInquiry(id);
+      if (editingInquiryId === id) {
+        setEditingInquiryId(null);
+      }
+      setConfirmDeleteInquiryId(null);
+      setInquiryActionSuccess('문의 내역이 삭제되었습니다.');
+    } catch (err) {
+      setInquiryActionError(err instanceof Error ? err.message : '삭제 중 오류가 발생했습니다.');
+    }
+  };
+
   // --- Admin RBAC Handlers ---
   const handleAddAdmin = async (e: FormEvent) => {
     e.preventDefault();
@@ -923,6 +1134,22 @@ export function AdminPage({ initialTab = 'notices', onChangeTab, onBackToSite }:
       p.telegramId.toLowerCase().includes(participantSearchLower) ||
       p.phone.toLowerCase().includes(participantSearchLower) ||
       p.shortAddress.toLowerCase().includes(participantSearchLower)
+    );
+  });
+
+  const pendingInquiryCount = inquiries.filter((q) => q.status === '대기중').length;
+  const inquirySearchLower = inquirySearch.trim().toLowerCase();
+  const filteredInquiries = inquiries.filter((q) => {
+    if (inquiryStatusFilter !== 'all' && q.status !== inquiryStatusFilter) {
+      return false;
+    }
+    if (!inquirySearchLower) return true;
+    return (
+      q.name.toLowerCase().includes(inquirySearchLower) ||
+      q.contact.toLowerCase().includes(inquirySearchLower) ||
+      q.topic.toLowerCase().includes(inquirySearchLower) ||
+      q.message.toLowerCase().includes(inquirySearchLower) ||
+      q.adminNote.toLowerCase().includes(inquirySearchLower)
     );
   });
 
@@ -1084,7 +1311,9 @@ export function AdminPage({ initialTab = 'notices', onChangeTab, onBackToSite }:
                     ? '커뮤니티(공지 · 갤러리) 관리'
                     : activeTab === 'history'
                       ? '선교회 연혁 추가 및 관리'
-                      : '선교회 참가자 등록 및 관리'}
+                      : activeTab === 'participants'
+                        ? '선교회 참가자 등록 및 관리'
+                        : '사역 · 훈련 문의 접수 관리'}
                 </h1>
               </div>
 
@@ -1137,6 +1366,23 @@ export function AdminPage({ initialTab = 'notices', onChangeTab, onBackToSite }:
                     <Users className="w-3.5 h-3.5 text-[#9A6B22]" />
                     <span>참가자 관리</span>
                   </button>
+                  <button
+                    type="button"
+                    role="tab"
+                    aria-selected={activeTab === 'inquiries'}
+                    onClick={() => handleSwitchTab('inquiries')}
+                    className={`inline-flex items-center gap-1.5 px-4 py-2 text-xs sm:text-sm font-medium rounded-md transition-colors cursor-pointer whitespace-nowrap shrink-0 ${
+                      activeTab === 'inquiries'
+                        ? 'bg-[#FBF9F5] text-[#1C1917] shadow-sm'
+                        : 'text-[#57534E] hover:text-[#1C1917]'
+                    }`}
+                  >
+                    <MessageSquare className="w-3.5 h-3.5 text-[#9A6B22]" />
+                    <span>
+                      문의 관리
+                      {pendingInquiryCount > 0 ? ` (${pendingInquiryCount})` : ''}
+                    </span>
+                  </button>
                 </div>
 
                 {activeTab === 'notices' && notices.length === 0 && (
@@ -1148,6 +1394,18 @@ export function AdminPage({ initialTab = 'notices', onChangeTab, onBackToSite }:
                   >
                     <Plus className="w-3.5 h-3.5 text-[#9A6B22]" />
                     <span>{isSeedingNotices ? '등록 중...' : '기본 공지·갤러리 불러오기'}</span>
+                  </button>
+                )}
+
+                {activeTab === 'notices' && notices.length > 0 && hasMissingBaselineGalleries && (
+                  <button
+                    type="button"
+                    disabled={isSeedingNotices}
+                    onClick={handleSeedBaselineGalleries}
+                    className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-medium text-[#1C1917] bg-[#F3EFE6] border border-stone-300 hover:border-stone-400 rounded-md transition-colors cursor-pointer disabled:opacity-50 whitespace-nowrap shrink-0"
+                  >
+                    <Plus className="w-3.5 h-3.5 text-[#9A6B22]" />
+                    <span>{isSeedingNotices ? '불러오는 중...' : '기본 갤러리 불러오기'}</span>
                   </button>
                 )}
 
@@ -1360,17 +1618,43 @@ export function AdminPage({ initialTab = 'notices', onChangeTab, onBackToSite }:
                       >
                         표시 날짜
                       </label>
-                      <input
-                        id="notice-date"
-                        type="text"
-                        maxLength={NOTICE_CONSTRAINTS.DATE_MAX}
-                        value={noticeForm.dateLabel}
-                        onChange={(e) =>
-                          setNoticeForm({ ...noticeForm, dateLabel: e.target.value })
-                        }
-                        placeholder="예: 2026.11.18"
-                        className="w-full px-3.5 py-2.5 text-sm bg-[#FBF9F5] border border-stone-300 rounded-md text-[#1C1917] font-tabular focus:outline-none focus:border-[#9A6B22]"
-                      />
+                      <div className="flex items-center gap-1.5">
+                        <input
+                          id="notice-date"
+                          type="text"
+                          maxLength={NOTICE_CONSTRAINTS.DATE_MAX}
+                          value={noticeForm.dateLabel}
+                          onChange={(e) =>
+                            setNoticeForm({ ...noticeForm, dateLabel: e.target.value })
+                          }
+                          placeholder="예: 2026.11.18"
+                          className="flex-1 min-w-0 px-3.5 py-2.5 text-sm bg-[#FBF9F5] border border-stone-300 rounded-md text-[#1C1917] font-tabular focus:outline-none focus:border-[#9A6B22]"
+                        />
+                        <label
+                          title="달력에서 날짜 선택"
+                          className="relative inline-flex items-center justify-center w-10 h-[42px] bg-[#FBF9F5] border border-stone-300 hover:border-[#9A6B22] rounded-md text-[#9A6B22] transition-colors cursor-pointer shrink-0"
+                        >
+                          <Calendar className="w-4 h-4 pointer-events-none" />
+                          <input
+                            type="date"
+                            aria-label="달력에서 표시 날짜 선택"
+                            value={
+                              /^\d{4}\.\d{2}\.\d{2}$/.test(noticeForm.dateLabel.trim())
+                                ? noticeForm.dateLabel.trim().replace(/\./g, '-')
+                                : ''
+                            }
+                            onChange={(e) => {
+                              if (e.target.value) {
+                                setNoticeForm({
+                                  ...noticeForm,
+                                  dateLabel: e.target.value.replace(/-/g, '.'),
+                                });
+                              }
+                            }}
+                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                          />
+                        </label>
+                      </div>
                     </div>
                   </div>
 
@@ -1745,9 +2029,9 @@ export function AdminPage({ initialTab = 'notices', onChangeTab, onBackToSite }:
                       <div className="inline-flex items-center gap-1 p-1 bg-[#EBE6DF] rounded-lg">
                         {(
                           [
-                            { id: 'all', label: '전체' },
-                            { id: '공지', label: '공지' },
-                            { id: '갤러리', label: '갤러리' },
+                            { id: 'all', label: `전체 (${notices.length})` },
+                            { id: '공지', label: `공지 (${noticeOnlyCount})` },
+                            { id: '갤러리', label: `갤러리 (${galleryNoticeCount})` },
                           ] as const
                         ).map((catTab) => (
                           <button
@@ -1799,11 +2083,38 @@ export function AdminPage({ initialTab = 'notices', onChangeTab, onBackToSite }:
                   ) : filteredNotices.length === 0 ? (
                     <div className="p-8 bg-[#F3EFE6]/60 border border-stone-200 rounded-xl text-center space-y-3">
                       <p className="text-sm text-[#57534E]">
-                        등록된 커뮤니티 게시글이 없습니다.
+                        {noticeCategoryFilter === '갤러리'
+                          ? '관리자 목록에 등록된 갤러리 게시글이 없습니다.'
+                          : '등록된 커뮤니티 게시글이 없습니다.'}
                       </p>
                       <p className="text-xs text-[#78716C]">
-                        왼쪽 양식에서 ‘공지’ 또는 ‘갤러리’ 게시글을 작성하거나 상단의 ‘기본 공지·갤러리 불러오기’ 버튼을 눌러 시작하세요.
+                        {noticeCategoryFilter === '갤러리'
+                          ? '왼쪽 양식에서 ‘갤러리’ 게시글을 새로 작성하거나, 아래 버튼을 눌러 홈페이지 기본 사역 갤러리를 불러와 수정·관리할 수 있습니다.'
+                          : '왼쪽 양식에서 ‘공지’ 또는 ‘갤러리’ 게시글을 작성하거나 기본 데이터를 불러와 시작하세요.'}
                       </p>
+                      {(notices.length === 0 || hasMissingBaselineGalleries) && (
+                        <div className="pt-1">
+                          <button
+                            type="button"
+                            disabled={isSeedingNotices}
+                            onClick={
+                              notices.length === 0
+                                ? handleSeedInitialNotices
+                                : handleSeedBaselineGalleries
+                            }
+                            className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-medium text-[#1C1917] bg-[#FBF9F5] border border-stone-300 hover:border-[#9A6B22] rounded-md transition-colors cursor-pointer disabled:opacity-50 whitespace-nowrap"
+                          >
+                            <Plus className="w-3.5 h-3.5 text-[#9A6B22]" />
+                            <span>
+                              {isSeedingNotices
+                                ? '불러오는 중...'
+                                : notices.length === 0
+                                  ? '기본 공지·갤러리 불러오기'
+                                  : '홈페이지 기본 갤러리(6건) 불러오기'}
+                            </span>
+                          </button>
+                        </div>
+                      )}
                     </div>
                   ) : (
                     <div className="divide-y divide-stone-200 border border-stone-200 rounded-xl bg-[#FBF9F5]">
@@ -2767,6 +3078,290 @@ export function AdminPage({ initialTab = 'notices', onChangeTab, onBackToSite }:
                         </div>
                       )}
                     </div>
+                  </div>
+                )}
+              </>
+            )}
+
+            {/* TAB 4: INQUIRIES MANAGEMENT WORKSPACE */}
+            {activeTab === 'inquiries' && (
+              <>
+                {!isBootstrapped ? (
+                  <div className="max-w-2xl p-8 bg-[#F3EFE6] border border-stone-200 rounded-xl space-y-3">
+                    <div className="flex items-center gap-2 text-xs font-medium text-[#9A3412]">
+                      <Shield className="w-4 h-4" />
+                      <span>개인정보 보호 정책</span>
+                    </div>
+                    <h2 className="font-editorial text-xl font-semibold text-[#1C1917]">
+                      접수된 사역 문의 열람은 대표 관리자 계정 전용입니다
+                    </h2>
+                    <p className="text-sm text-[#57534E] leading-relaxed">
+                      문의자의 성함, 전화번호/이메일, 상담 내용 보호를 위해 문의 관리 메뉴는 대표
+                      관리자({BOOTSTRAPPED_ADMIN_EMAIL}) 계정에서만 열람 및 처리할 수 있습니다.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-6">
+                    {/* Top Filter & Search Bar */}
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-stone-200">
+                      <div className="flex flex-wrap items-center gap-3">
+                        <p className="text-sm font-medium text-[#1C1917] font-tabular">
+                          접수된 문의 ({filteredInquiries.length}건)
+                        </p>
+
+                        <div className="inline-flex flex-wrap items-center gap-1 p-1 bg-[#EBE6DF] rounded-lg">
+                          {(
+                            [
+                              { id: 'all', label: '전체' },
+                              { id: '대기중', label: '대기중' },
+                              { id: '확인됨', label: '확인됨' },
+                              { id: '답변완료', label: '답변완료' },
+                            ] as const
+                          ).map((st) => (
+                            <button
+                              key={st.id}
+                              type="button"
+                              onClick={() => setInquiryStatusFilter(st.id)}
+                              className={`px-3 py-1 text-xs font-medium rounded-md transition-colors cursor-pointer whitespace-nowrap shrink-0 ${
+                                inquiryStatusFilter === st.id
+                                  ? 'bg-[#FBF9F5] text-[#1C1917] shadow-sm'
+                                  : 'text-[#57534E] hover:text-[#1C1917]'
+                              }`}
+                            >
+                              {st.label}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="relative w-full md:w-80">
+                        <Search className="w-4 h-4 text-[#78716C] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                        <input
+                          type="search"
+                          value={inquirySearch}
+                          onChange={(e) => setInquirySearch(e.target.value)}
+                          placeholder="성함, 연락처, 문의 구분·내용 검색"
+                          className="w-full pl-10 pr-9 py-2 text-sm bg-[#FBF9F5] border border-stone-300 rounded-lg text-[#1C1917] focus:outline-none focus:border-[#9A6B22]"
+                        />
+                        {inquirySearch && (
+                          <button
+                            type="button"
+                            onClick={() => setInquirySearch('')}
+                            aria-label="검색어 지우기"
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-[#78716C] hover:text-[#1C1917] cursor-pointer"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+
+                    {inquiryActionError && (
+                      <p role="alert" className="text-xs font-medium text-[#9A3412]">
+                        {inquiryActionError}
+                      </p>
+                    )}
+                    {inquiryActionSuccess && (
+                      <p role="status" className="text-xs font-medium text-[#9A6B22]">
+                        {inquiryActionSuccess}
+                      </p>
+                    )}
+
+                    {inquiryListLoading ? (
+                      <p className="py-12 text-center text-sm text-[#78716C]">
+                        접수된 문의 목록을 불러오는 중입니다...
+                      </p>
+                    ) : filteredInquiries.length === 0 ? (
+                      <div className="p-10 bg-[#F3EFE6]/60 border border-stone-200 rounded-xl text-center space-y-2">
+                        <p className="text-sm text-[#57534E]">
+                          {inquiries.length === 0
+                            ? '아직 접수된 문의 내역이 없습니다.'
+                            : '선택한 조건에 해당하는 문의가 없습니다.'}
+                        </p>
+                        <p className="text-xs text-[#78716C]">
+                          홈페이지 하단 ‘훈련 신청 및 사역 문의’에서 접수된 내용은 이곳에 실시간으로
+                          표시됩니다.
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="divide-y divide-stone-200 border border-stone-200 rounded-xl bg-[#FBF9F5]">
+                        {filteredInquiries.map((inquiry) => {
+                          const createdDate = new Date(inquiry.createdAtMs);
+                          const dateStr = `${createdDate.getFullYear()}.${String(
+                            createdDate.getMonth() + 1
+                          ).padStart(2, '0')}.${String(createdDate.getDate()).padStart(
+                            2,
+                            '0'
+                          )} ${String(createdDate.getHours()).padStart(2, '0')}:${String(
+                            createdDate.getMinutes()
+                          ).padStart(2, '0')}`;
+                          const isEditingThis = editingInquiryId === inquiry.id;
+                          const statusColorClass =
+                            inquiry.status === '대기중'
+                              ? 'text-[#9A3412]'
+                              : inquiry.status === '확인됨'
+                                ? 'text-[#9A6B22]'
+                                : 'text-[#57534E]';
+
+                          return (
+                            <div key={inquiry.id} className="p-5 sm:p-6 space-y-4">
+                              <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-4">
+                                <div className="space-y-2 min-w-0 flex-1">
+                                  <div className="flex flex-wrap items-center gap-2 text-xs text-[#78716C]">
+                                    <span className={`font-semibold ${statusColorClass}`}>
+                                      {inquiry.status}
+                                    </span>
+                                    <span aria-hidden="true">·</span>
+                                    <span className="font-medium text-[#1C1917]">
+                                      {inquiry.topic}
+                                    </span>
+                                    <span aria-hidden="true">·</span>
+                                    <span className="font-tabular">{dateStr}</span>
+                                  </div>
+
+                                  <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                                    <h3 className="text-base font-semibold text-[#1C1917]">
+                                      {inquiry.name}
+                                    </h3>
+                                    <span className="text-xs sm:text-sm text-[#57534E] font-tabular">
+                                      연락처: {inquiry.contact}
+                                    </span>
+                                  </div>
+
+                                  <p className="text-sm text-[#292524] leading-relaxed whitespace-pre-wrap bg-[#F3EFE6]/55 border border-stone-200/80 rounded-lg p-3.5">
+                                    {inquiry.message}
+                                  </p>
+
+                                  {inquiry.adminNote && !isEditingThis && (
+                                    <p className="text-xs text-[#57534E] bg-[#FBF9F5] border-l-2 border-[#9A6B22] pl-3 py-1">
+                                      <strong className="text-[#1C1917]">사무국 메모:</strong>{' '}
+                                      {inquiry.adminNote}
+                                    </p>
+                                  )}
+                                </div>
+
+                                <div className="flex flex-wrap lg:flex-col items-stretch lg:items-end gap-2 shrink-0">
+                                  <div className="inline-flex items-center gap-1 p-1 bg-[#EBE6DF] rounded-md">
+                                    {INQUIRY_STATUSES.map((statusOption) => (
+                                      <button
+                                        key={statusOption}
+                                        type="button"
+                                        onClick={() =>
+                                          handleQuickInquiryStatus(inquiry, statusOption)
+                                        }
+                                        className={`px-2.5 py-1 text-[11px] font-medium rounded transition-colors cursor-pointer whitespace-nowrap ${
+                                          inquiry.status === statusOption
+                                            ? 'bg-[#1C1917] text-[#FBF9F5]'
+                                            : 'text-[#57534E] hover:text-[#1C1917]'
+                                        }`}
+                                      >
+                                        {statusOption}
+                                      </button>
+                                    ))}
+                                  </div>
+
+                                  <div className="flex items-center gap-2">
+                                    <button
+                                      type="button"
+                                      onClick={() =>
+                                        isEditingThis
+                                          ? setEditingInquiryId(null)
+                                          : handleStartEditInquiry(inquiry)
+                                      }
+                                      className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-[#1C1917] bg-[#F3EFE6] hover:bg-[#EBE6DF] border border-stone-200 rounded-md transition-colors cursor-pointer whitespace-nowrap"
+                                    >
+                                      <Edit3 className="w-3.5 h-3.5" />
+                                      <span>{isEditingThis ? '편집 닫기' : '메모 작성'}</span>
+                                    </button>
+
+                                    {confirmDeleteInquiryId === inquiry.id ? (
+                                      <div className="inline-flex items-center gap-1">
+                                        <button
+                                          type="button"
+                                          onClick={() => handleConfirmDeleteInquiry(inquiry.id)}
+                                          className="px-2.5 py-1.5 text-xs font-medium text-[#FBF9F5] bg-[#9A3412] hover:bg-[#7C2D12] rounded-md cursor-pointer whitespace-nowrap"
+                                        >
+                                          삭제 확인
+                                        </button>
+                                        <button
+                                          type="button"
+                                          onClick={() => setConfirmDeleteInquiryId(null)}
+                                          className="px-2 py-1.5 text-xs text-[#57534E] hover:text-[#1C1917] cursor-pointer whitespace-nowrap"
+                                        >
+                                          취소
+                                        </button>
+                                      </div>
+                                    ) : (
+                                      <button
+                                        type="button"
+                                        onClick={() => setConfirmDeleteInquiryId(inquiry.id)}
+                                        className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-[#9A3412] hover:bg-[#9A3412]/10 border border-stone-200 rounded-md transition-colors cursor-pointer whitespace-nowrap"
+                                      >
+                                        <Trash2 className="w-3.5 h-3.5" />
+                                        <span>삭제</span>
+                                      </button>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+
+                              {isEditingThis && (
+                                <form
+                                  onSubmit={(e) => handleSaveInquiryEdit(e, inquiry.id)}
+                                  className="p-4 bg-[#F3EFE6]/70 border border-stone-200 rounded-lg space-y-3"
+                                >
+                                  <div className="flex flex-wrap items-center justify-between gap-2">
+                                    <span className="text-xs font-medium text-[#292524]">
+                                      처리 상태 및 사무국 메모
+                                    </span>
+                                    <select
+                                      aria-label="문의 처리 상태"
+                                      value={inquiryEditStatus}
+                                      onChange={(e) =>
+                                        setInquiryEditStatus(e.target.value as InquiryStatus)
+                                      }
+                                      className="px-2.5 py-1 text-xs bg-[#FBF9F5] border border-stone-300 rounded text-[#1C1917]"
+                                    >
+                                      {INQUIRY_STATUSES.map((st) => (
+                                        <option key={st} value={st}>
+                                          {st}
+                                        </option>
+                                      ))}
+                                    </select>
+                                  </div>
+
+                                  <textarea
+                                    rows={2}
+                                    maxLength={INQUIRY_CONSTRAINTS.ADMIN_NOTE_MAX}
+                                    value={inquiryEditNote}
+                                    onChange={(e) => setInquiryEditNote(e.target.value)}
+                                    placeholder="회신 일시, 담당자 안내 내용 등 내부 메모를 입력하세요."
+                                    className="w-full px-3 py-2 text-xs sm:text-sm bg-[#FBF9F5] border border-stone-300 rounded-md text-[#1C1917] focus:outline-none focus:border-[#9A6B22]"
+                                  />
+
+                                  <div className="flex items-center justify-end gap-2">
+                                    <button
+                                      type="button"
+                                      onClick={() => setEditingInquiryId(null)}
+                                      className="px-3 py-1.5 text-xs text-[#57534E] hover:text-[#1C1917] cursor-pointer"
+                                    >
+                                      취소
+                                    </button>
+                                    <button
+                                      type="submit"
+                                      disabled={isSavingInquiry}
+                                      className="px-4 py-1.5 text-xs font-medium text-[#FBF9F5] bg-[#1C1917] hover:bg-[#342F2B] rounded-md cursor-pointer disabled:opacity-50"
+                                    >
+                                      {isSavingInquiry ? '저장 중...' : '저장하기'}
+                                    </button>
+                                  </div>
+                                </form>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
                   </div>
                 )}
               </>

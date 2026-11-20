@@ -203,6 +203,41 @@ service cloud.firestore {
       data.createdAt is timestamp;
     }
 
+    function isValidInquiryStatus(status) {
+      return status in ['대기중', '확인됨', '답변완료'];
+    }
+
+    function isValidInquiryPayload(data) {
+      return data.keys().hasAll([
+        'name',
+        'contact',
+        'topic',
+        'message',
+        'status',
+        'adminNote',
+        'createdAt',
+        'updatedAt'
+      ]) &&
+      data.keys().hasOnly([
+        'name',
+        'contact',
+        'topic',
+        'message',
+        'status',
+        'adminNote',
+        'createdAt',
+        'updatedAt'
+      ]) &&
+      data.name is string && data.name.size() >= 2 && data.name.size() <= 60 &&
+      data.contact is string && data.contact.size() >= 4 && data.contact.size() <= 100 &&
+      data.topic is string && data.topic.size() >= 2 && data.topic.size() <= 80 &&
+      data.message is string && data.message.size() >= 5 && data.message.size() <= 2000 &&
+      data.status is string && data.status.size() <= 20 && isValidInquiryStatus(data.status) &&
+      data.adminNote is string && data.adminNote.size() <= 1000 &&
+      data.createdAt is timestamp &&
+      data.updatedAt is timestamp;
+    }
+
     // --- Collection: /notices/{noticeId} ---
     match /notices/{noticeId} {
       allow get: if isValidId(noticeId) && (
@@ -330,6 +365,37 @@ service cloud.firestore {
         incoming().diff(existing()).affectedKeys().hasOnly(['email', 'displayName']);
 
       allow delete: if isValidId(adminId) && isBootstrappedAdmin();
+    }
+
+    // --- Collection: /inquiries/{inquiryId} (Public Submit, Bootstrapped Admin Read/Manage Only) ---
+    match /inquiries/{inquiryId} {
+      allow get: if isValidId(inquiryId) && isBootstrappedAdmin();
+
+      allow list: if isBootstrappedAdmin();
+
+      allow create: if isValidId(inquiryId) &&
+        isValidInquiryPayload(incoming()) &&
+        incoming().status == '대기중' &&
+        incoming().adminNote == '' &&
+        incoming().createdAt == request.time &&
+        incoming().updatedAt == request.time;
+
+      allow update: if isValidId(inquiryId) &&
+        isBootstrappedAdmin() &&
+        isValidInquiryPayload(incoming()) &&
+        incoming().name == existing().name &&
+        incoming().contact == existing().contact &&
+        incoming().topic == existing().topic &&
+        incoming().message == existing().message &&
+        incoming().createdAt == existing().createdAt &&
+        incoming().updatedAt == request.time &&
+        incoming().diff(existing()).affectedKeys().hasOnly([
+          'status',
+          'adminNote',
+          'updatedAt'
+        ]);
+
+      allow delete: if isValidId(inquiryId) && isBootstrappedAdmin();
     }
   }
 }

@@ -285,6 +285,69 @@
         }
       },
       "required": ["email", "displayName", "addedBy", "createdAt"]
+    },
+    "Inquiry": {
+      "title": "Inquiry",
+      "description": "방문자가 접수한 훈련 신청 및 사역 문의 (개인정보 포함, 열람·처리는 대표 관리자 전용)",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "성함 또는 소속",
+          "minLength": 2,
+          "maxLength": 60
+        },
+        "contact": {
+          "type": "string",
+          "description": "연락처 (전화번호 또는 이메일)",
+          "minLength": 4,
+          "maxLength": 100
+        },
+        "topic": {
+          "type": "string",
+          "description": "문의 구분",
+          "minLength": 2,
+          "maxLength": 80
+        },
+        "message": {
+          "type": "string",
+          "description": "문의 내용",
+          "minLength": 5,
+          "maxLength": 2000
+        },
+        "status": {
+          "type": "string",
+          "description": "처리 상태",
+          "enum": ["대기중", "확인됨", "답변완료"],
+          "maxLength": 20
+        },
+        "adminNote": {
+          "type": "string",
+          "description": "관리자 처리 메모",
+          "minLength": 0,
+          "maxLength": 1000
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "접수 시각 (serverTimestamp)"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "최종 수정 시각 (serverTimestamp)"
+        }
+      },
+      "required": [
+        "name",
+        "contact",
+        "topic",
+        "message",
+        "status",
+        "adminNote",
+        "createdAt",
+        "updatedAt"
+      ]
     }
   },
   "firestore": {
@@ -303,6 +366,10 @@
     "/admins/{adminId}": {
       "schema": { "$ref": "#/entities/AdminUser" },
       "description": "추가 관리자 UID 화이트리스트 컬렉션 (대표 관리자 전용 관리)"
+    },
+    "/inquiries/{inquiryId}": {
+      "schema": { "$ref": "#/entities/Inquiry" },
+      "description": "훈련 신청 및 사역 문의 접수 컬렉션 (방문자 생성 가능, 열람·상태변경·삭제는 대표 관리자 전용)"
     }
   }
 }

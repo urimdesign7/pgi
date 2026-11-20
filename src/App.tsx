@@ -19,6 +19,9 @@ function parseAdminHash(hash: string): { isAdmin: boolean; tab: AdminSectionTab 
   if (hash === '#admin-participants') {
     return { isAdmin: true, tab: 'participants' };
   }
+  if (hash === '#admin-inquiries') {
+    return { isAdmin: true, tab: 'inquiries' };
+  }
   if (hash === '#admin') {
     return { isAdmin: true, tab: 'notices' };
   }
@@ -28,6 +31,7 @@ function parseAdminHash(hash: string): { isAdmin: boolean; tab: AdminSectionTab 
 function getAdminHash(tab: AdminSectionTab): string {
   if (tab === 'history') return 'admin-history';
   if (tab === 'participants') return 'admin-participants';
+  if (tab === 'inquiries') return 'admin-inquiries';
   return 'admin';
 }
 
@@ -77,7 +81,8 @@ export default function App() {
     if (
       window.location.hash === '#admin' ||
       window.location.hash === '#admin-history' ||
-      window.location.hash === '#admin-participants'
+      window.location.hash === '#admin-participants' ||
+      window.location.hash === '#admin-inquiries'
     ) {
       window.history.replaceState(null, '', window.location.pathname + window.location.search);
     }
