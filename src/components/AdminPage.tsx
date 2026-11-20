@@ -463,9 +463,19 @@ export function AdminPage({ initialTab = 'notices', onChangeTab, onBackToSite }:
     try {
       await signInWithPopup(auth, googleProvider);
     } catch (err) {
-      setAuthError(
-        err instanceof Error ? err.message : 'Google 로그인 중 문제가 발생했습니다.'
-      );
+      const code =
+        typeof err === 'object' && err !== null && 'code' in err
+          ? String((err as { code?: unknown }).code ?? '')
+          : '';
+      const message = err instanceof Error ? err.message : '';
+      if (code === 'auth/unauthorized-domain' || message.includes('unauthorized-domain')) {
+        const host = typeof window !== 'undefined' ? window.location.hostname : '';
+        setAuthError(
+          `현재 도메인(${host})이 Firebase 승인된 도메인에 아직 등록되지 않았습니다. 아래 설정 링크에서 '${host}'를 추가해 주세요.`
+        );
+      } else {
+        setAuthError(message || 'Google 로그인 중 문제가 발생했습니다.');
+      }
     }
   };
 
@@ -1223,9 +1233,19 @@ export function AdminPage({ initialTab = 'notices', onChangeTab, onBackToSite }:
             </div>
 
             {authError && (
-              <p role="alert" className="text-xs font-medium text-[#9A3412]">
-                {authError}
-              </p>
+              <div role="alert" className="space-y-2 text-xs font-medium text-[#9A3412]">
+                <p>{authError}</p>
+                {authError.includes('승인된 도메인') && (
+                  <a
+                    href="https://console.firebase.google.com/project/infranics-200706-282501/authentication/settings"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-block underline text-[#1C1917] hover:text-[#9A6B22]"
+                  >
+                    Firebase 승인된 도메인 설정 열기 →
+                  </a>
+                )}
+              </div>
             )}
 
             <button
